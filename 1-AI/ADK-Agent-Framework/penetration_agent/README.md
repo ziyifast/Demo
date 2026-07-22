@@ -29,7 +29,7 @@ TENCENT_API_KEY=your_api_key_here
 #### 方式一：命令行模式
 
 ```bash
-cd hack_agent
+cd 1-AI/ADK-Agent-Framework/penetration_agent
 python agent.py
 ```
 
