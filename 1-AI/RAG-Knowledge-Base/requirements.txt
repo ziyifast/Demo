@@ -1,0 +1,27 @@
+# RAG + Agent 入门实战项目依赖
+# 核心框架
+langchain>=0.3.0
+langchain-classic>=0.1.0
+langchain-community>=0.3.0
+langchain-openai>=0.2.0
+langchain-huggingface>=0.1.0
+langchain-text-splitters>=0.3.0
+langchain-chroma>=0.2.0
+
+# 向量数据库
+chromadb>=0.5.0
+
+# LLM 相关
+openai>=1.50.0
+tiktoken>=0.7.0
+
+# 文档加载（支持 PDF、Markdown 等多种格式）
+pypdf>=4.0.0
+unstructured>=0.15.0
+python-docx>=1.1.0
+
+# 开源 Embedding 模型（默认使用，免费、无需 API）
+sentence-transformers>=3.0.0
+
+# 工具
+python-dotenv>=1.0.0
