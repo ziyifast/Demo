@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>坐席工作台 · 售后审批</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+         background: #f2f4f7; min-height: 100vh; }
+  .header { background: #111827; color: #fff; padding: 16px 24px;
+            display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header .spacer { flex: 1; }
+  .header .who { font-size: 13px; color: #d1d5db; }
+  .refresh { background: #1a56db; color: #fff; border: none; padding: 8px 16px;
+             border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .refresh:hover { background: #1746b8; }
+  .container { max-width: 960px; margin: 24px auto; padding: 0 20px; }
+  .empty { text-align: center; color: #9ca3af; padding: 60px 0; font-size: 14px; }
+  .ticket { background: #fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.06); border-left: 4px solid #f59e0b; }
+  .ticket-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tid { font-family: ui-monospace, Menlo, monospace; font-weight: 600; color: #1f2937; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+           background: #fef3c7; color: #92400e; }
+  .meta { margin-top: 10px; font-size: 13px; color: #4b5563; line-height: 1.7; }
+  .meta strong { color: #1f2937; }
+  .params { margin-top: 8px; background: #f9fafb; border: 1px solid #e5e7eb;
+            border-radius: 6px; padding: 8px 10px; font-family: ui-monospace, Menlo, monospace;
+            font-size: 12px; color: #374151; white-space: pre-wrap; }
+  .actions { margin-top: 12px; display: flex; gap: 8px; }
+  .actions button { padding: 7px 18px; border-radius: 8px; border: none;
+                    font-size: 13px; cursor: pointer; }
+  .btn-approve { background: #16a34a; color: #fff; }
+  .btn-approve:hover { background: #15803d; }
+  .btn-reject { background: #e5e7eb; color: #374151; }
+  .btn-reject:hover { background: #d1d5db; }
+  .actions button:disabled { opacity: .5; cursor: not-allowed; }
+  .toast { position: fixed; top: 20px; right: 20px; background: #111827; color: #fff;
+           padding: 12px 18px; border-radius: 8px; font-size: 13px; opacity: 0;
+           transform: translateY(-10px); transition: all .2s; pointer-events: none;
+           max-width: 360px; line-height: 1.6; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🛠️ 坐席工作台 · 售后审批</h1>
+  <div class="spacer"></div>
+  <span class="who">当前审批人：坐席</span>
+  <button class="refresh" onclick="loadTickets()">刷新</button>
+</div>
+
+<div class="container" id="list"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $list = document.getElementById('list');
+const $toast = document.getElementById('toast');
+
+function token() { return 'dev-finance-token'; }
+
+function showToast(msg) {
+  $toast.textContent = msg;
+  $toast.classList.add('show');
+  setTimeout(() => $toast.classList.remove('show'), 3000);
+}
+
+async function loadTickets() {
+  $list.innerHTML = '<div class="empty">加载中…</div>';
+  try {
+    const resp = await fetch('/api/agent/tickets?status=pending', {
+      headers: { 'X-Agent-Token': token() },
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    render(data.tickets);
+  } catch (e) {
+    $list.innerHTML = `<div class="empty">加载失败：${e.message}</div>`;
+  }
+}
+
+function render(tickets) {
+  if (!tickets.length) {
+    $list.innerHTML = '<div class="empty">暂无待审批工单</div>';
+    return;
+  }
+  $list.innerHTML = '';
+  for (const t of tickets) {
+    const el = document.createElement('div');
+    el.className = 'ticket';
+    el.innerHTML = `
+      <div class="ticket-head">
+        <span class="tid">${t.ticket_id}</span>
+        <span class="badge">待审批</span>
+      </div>
+      <div class="meta">
+        订单 <strong>${t.order_id}</strong> · 金额 <strong>¥${t.amount}</strong>
+        · 用户 <strong>${t.user_id}</strong><br>
+        原因：${t.reason || '未填写'}
+      </div>
+      <div class="params"></div>
+      <div class="actions">
+        <button class="btn-approve">批准</button>
+        <button class="btn-reject">拒绝</button>
+      </div>`;
+    el.querySelector('.params').textContent = JSON.stringify(t.tool_args || {}, null, 2);
+    el.querySelector('.btn-approve').onclick = () => decide(t.ticket_id, 'approve', el);
+    el.querySelector('.btn-reject').onclick = () => decide(t.ticket_id, 'reject', el);
+    $list.appendChild(el);
+  }
+}
+
+async function decide(ticketId, decision, el) {
+  el.querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    const resp = await fetch(`/api/agent/tickets/${ticketId}/decide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Agent-Token': token() },
+      body: JSON.stringify({ decision }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: `HTTP ${resp.status}` }));
+      showToast(`处理失败：${err.detail}`);
+      loadTickets();
+      return;
+    }
+    const data = await resp.json();
+    showToast(`工单 ${data.ticket_id} 已${data.status === 'approved' ? '批准' : '拒绝'}`);
+    loadTickets();
+  } catch (e) {
+    showToast(`请求失败：${e.message}`);
+    loadTickets();
+  }
+}
+
+loadTickets();
+</script>
+</body>
+</html>
