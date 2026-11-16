@@ -1,0 +1,6 @@
+{
+  "name": "my-first-plugin",
+  "description": "A minimal diagnosis plugin to learn the basics",
+  "version": "1.0.0",
+  "author": { "name": "Ziyi" }
+}

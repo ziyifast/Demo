@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date -Iseconds)] diagnosis ended\" >> ${CODEBUDDY_PLUGIN_ROOT}/audit.log"
+          }
+        ]
+      }
+    ]
+  }
+}

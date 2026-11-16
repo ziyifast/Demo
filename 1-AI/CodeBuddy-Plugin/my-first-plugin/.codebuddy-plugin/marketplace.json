@@ -1,0 +1,11 @@
+{
+  "name": "team-tools",
+  "owner": { "name": "Platform Engineering" },
+  "plugins": [
+    {
+      "name": "my-first-plugin",
+      "source": "./",
+      "description": "Diagnosis toolkit: logs + code, orchestrated by a skill"
+    }
+  ]
+}
