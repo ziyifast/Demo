@@ -1,10 +1,14 @@
 {
   "name": "team-tools",
-  "owner": { "name": "Platform Engineering" },
+  "owner": { "name": "Ziyi" },
   "plugins": [
     {
       "name": "my-first-plugin",
-      "source": "./",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ziyifast/Demo.git",
+        "path": "1-AI/CodeBuddy-Plugin/my-first-plugin"
+      },
       "description": "Diagnosis toolkit: logs + code, orchestrated by a skill"
     }
   ]
