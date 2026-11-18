@@ -7,7 +7,8 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ziyifast/Demo.git",
-        "path": "1-AI/CodeBuddy-Plugin/my-first-plugin"
+        "path": "1-AI/CodeBuddy-Plugin/my-first-plugin",
+        "ref": "main"
       },
       "description": "Diagnosis toolkit: logs + code, orchestrated by a skill"
     }
